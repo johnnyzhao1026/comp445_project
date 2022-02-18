@@ -9,49 +9,25 @@ from urllib.parse import urlparse
 from HttpClient import HttpRequest, HttpResponse
 import shlex # ignore the space in quotes " x x"
 
-class Httpc(cmd.Cmd):
-    """ 
-    The HttpcLibrary class is to implement cURL command line with basic functions.
-    """ 
-    
+class Httpc(cmd.Cmd):    
     title = '''
-
-     **      ** ********** ********** *******    ****** 
-    /**     /**/////**/// /////**/// /**////**  **////**
-    /**     /**    /**        /**    /**   /** **    // 
-    /**********    /**        /**    /******* /**       
-    /**//////**    /**        /**    /**////  /**       
-    /**     /**    /**        /**    /**      //**    **
-    /**     /**    /**        /**    /**       //****** 
-    //      //     //         //     //         ////// 
-
-    Welcome to httpc, Type help or ? to list commands.
+    Welcome to httpClient, Type help or ? to list commands.
     Press 'Ctrl+C' or Type 'quit' to terminate.
-
     '''
 
-    intro = "\033[1;33;40m{}\033[0m".format(title)
+    intro = '\nWelcome to httpc, Type help or ? to list commands. Press ''Ctrl+C'' or Type ''quit'' to terminate.\n'
     prompt = 'httpc '
 
 
-    # basic httpc help menu
     def do_help(self, arg):
-        '''
-        httpc is a curl-like application but supports HTTP protocol only.
-            Usage:
-                httpc command [arguments]
-            The commands are: 
-                get    executes a HTTP GET request and prints the response.
-                post   executes a HTTP POST request and prints the resonse.
-                help   prints this screen.
-        '''
         if not arg or arg == 'help':
             print('\nhttpc is a curl-like application but supports HTTP protocol only.\n' +
             'Usage: \n' + '\t httpc command [arguments]\n'
             + 'The commands are: \n' + 
             '\t get    executes a HTTP GET request and prints the response.\n' +
             '\t post   executes a HTTP POST request and prints the resonse.\n' +
-            '\t help   prints this screen.\n')
+            '\t help   prints this screen.\n\n' +
+            'Use "httpc help [command]" for more information about a command.\n')
         elif arg == 'get':
             print('\nusage: httpc get [-v] [-h key:value] URL\n' +
             'Get executes a HTTP GET request for a given URL.\n' +
@@ -67,19 +43,13 @@ class Httpc(cmd.Cmd):
             'Either [-d] or [-f] can be used but not both.\n')
         else:
             print('Please input a valid command!!! Type help or ? to get help!!!')
-        # return super().do_help(arg)
-
     def do_clear(self,arg):
         '''
         The method is to clear the screen.
         '''
         print('\033c')
-
     def do_quit(self,arg):
-        '''
-        The method is to quit the app.
-        '''
-        print('Thanks for using! Bye!')
+        print('Program Exit!')
         sys.exit(0)
 
     def do_get(self, cmd):
@@ -94,11 +64,8 @@ class Httpc(cmd.Cmd):
         :test Redirection: get -v 'http://httpbin.org/status/301'
         :test -o filename: get -v 'http://httpbin.org/get?course=networking&assignment=1' -o output.txt
         '''
-        # if not cmd: self.do_help('get')
-        
         # parse the command from console
-        parser_get = argparse.ArgumentParser(description='Get executes a HTTP GET request for a given URL.'
-        , conflict_handler = 'resolve') # conflict_handle is to solve the conflict issue of help argument.
+        parser_get = argparse.ArgumentParser(description='Get executes a HTTP GET request for a given URL.', conflict_handler = 'resolve') # conflict_handle is to solve the conflict issue of help argument.
         parser_get.prog = 'httpc get'
         parser_get.usage = parser_get.prog + ' [-v] [-h key:value] URL'
         # add optional argument
@@ -107,112 +74,77 @@ class Httpc(cmd.Cmd):
 
         # add positional argument URL, fix bug : the no expect argument : URL 
         parser_get.add_argument('url',help='a valid http url',default=cmd.split()[-1] ,nargs='?' )
-        # print(cmd.split()[-1])
-        # print(cmd.split()[:-1])
-        # print("[Debug] cmd.split() is : " + str(cmd.split()) )
 
         # add optional argument -o filename
-        parser_get.add_argument('-o','--output',help='write the body of the response to the specific file')
+        # parser_get.add_argument('-o','--output',help='write the body of the response to the specific file')
 
         # assign the valid arguments
-        # :test: get -v 'http://httpbin.org/get?course=networking&assignment=1' -o output.txt
-        if self._is_valid_url(cmd.split()[-1]):
-            args = parser_get.parse_args(cmd.split()[:-1])
-        else:
-            args = parser_get.parse_args(cmd.split()[:-3] + cmd.split()[-2:] )
-            # print('[Debug] split args are : ' + str(cmd.split()[:-3]) + str(cmd.split()[-2:]))
-            args.url = cmd.split()[-3]
-        
-        # print parser help
-        # parser_get.print_help()
-        print("[Debug] args are : " + str(args) )
-        # print(args.url)
+        # if self._is_valid_url(cmd.split()[-1]):
+        args = parser_get.parse_args(cmd.split()[:-1])
+        # else:
+        #     args = parser_get.parse_args(cmd.split()[:-3] + cmd.split()[-2:] )
+        #     args.url = cmd.split()[-3]
 
         # Check the URL is valid
-        if self._is_valid_url(args.url):
-            # recall HttpClient to send Http request
+        # if self._is_valid_url(args.url):
+        # recall HttpClient to send Http request
+    
+        # urlparse 
+        url_parsed = URL_PARSE(args.url)
         
-            # urlparse 
-            url_parsed = URL_PARSE(args.url)
-            
-            # check whether code is 3xx or not
-            code_redirect = ['301','302']
-            # while True:    
-                # get request  
-            request = self._get_request(url_parsed,args,'GET')
-                # use socket to connect server, get response
-            response_content = self._client_socket_connect_server(url_parsed,request)
-                # print Output in the console depends on diffenrent requirements (-v)
-            self._print_details_by_verbose(args.verbose,response_content)
-                # check whether code is 3xx or not
-                # if response_content.code in code_redirect :
-                #     # change path and re-parse url
-                #     if self._is_valid_url(response_content.location):
-                #         args.url = "'" + response_content.location + "'"
-                #         url_parsed = URL_PARSE(args.url)
-                #     else:
-                #         url_parsed.path = response_content.location
-                #     print('[Rediection] \'GET\' new location is : ' + response_content.location )        
-                # else:
-            
-            print('\n[Debug] --- End ---\n')
-                    # break
-            
-
-            # if -o, write to output.txt
-            if args.output:
-                self._output_file(args, response_content)
+        # check whether code is 3xx or not
+        # code_redirect = ['301','302']
+        # while True:    
+            # get request  
+        request = self._get_request(url_parsed,args,'GET')
+            # use socket to connect server, get response
+        response_content = self._client_socket_connect_server(url_parsed,request)
+            # print Output in the console depends on diffenrent requirements (-v)
+        self._print_details_by_verbose(args.verbose,response_content)
 
     
     # some private methods
-    def _is_valid_url(self, url):
-        '''
-        The method is to check if the url is valid or not.
-        :param: url
-        :return: boolean
-        '''
-        # if no quote starts with url, then add it. 
-        if url.startswith('\''):
-            pass
-        else:
-            url = '\'' + url + '\''
-        # use eval() to omit the ' ' 
-        if re.match(r'^https?:/{2}\w.+$',eval(url)):
-            # print('[Debug] valid url : ' + url)
-            return True
-        else: 
-            print('[Debug] invalid url')
-            return False 
+    # def _is_valid_url(self, url):
+    #     '''
+    #     The method is to check if the url is valid or not.
+    #     :param: url
+    #     :return: boolean
+    #     '''
+    #     # if no quote starts with url, then add it. 
+    #     if url.startswith('\''):
+    #         pass
+    #     else:
+    #         url = '\'' + url + '\''
+    #     # use eval() to omit the ' ' 
+    #     if re.match(r'^https?:/{2}\w.+$',eval(url)):
+    #         # print('[Debug] valid url : ' + url)
+    #         return True
+    #     else: 
+    #         # print('[Debug] invalid url')
+    #         return False 
 
-    def _is_valid_header(self, header):
-        '''
-        The method is to check if the header is valid or not.
-        :param: header
-        :return: boolean
-        '''
-        # case considers one more key:value
-        if len(header) >= 1:
-            # check whether header is valid one by one
-            for i in range(len(header)):
-                if re.match(r'(.+:.+)',header[i]):
-                    print('[Debug] valid header : ' + header[i])
-                else: 
-                    print('[Debug] invalid header : ' + header[i])
-                    return False
-        else:
-            print('[Debug] no header ')
-            return False
-        return True
+    # def _is_valid_header(self, header):
+    #     '''
+    #     The method is to check if the header is valid or not.
+    #     :param: header
+    #     :return: boolean
+    #     '''
+    #     # case considers one more key:value
+    #     if len(header) >= 1:
+    #         # check whether header is valid one by one
+    #         for i in range(len(header)):
+    #             if re.match(r'(.+:.+)',header[i]):
+    #                 print('[Debug] valid header : ' + header[i])
+    #             else: 
+    #                 print('[Debug] invalid header : ' + header[i])
+    #                 return False
+    #     else:
+    #         print('[Debug] no header ')
+    #         return False
+    #     return True
 
     def _get_request(self, url_parsed, args, request_method):
-        '''
-        The method is to get request by parsed URL, headers, and request method.
-        :param: url_parsed
-        :param: args : need args.header, args.data, args.file
-        :param: request_method : GET or POST
-        :return: request
-        '''
-        if args.header and self._is_valid_header(args.header):
+        if args.header:
             # case: one more key:value headers
             headers = ''
             for i in range(len(args.header)):
@@ -223,7 +155,7 @@ class Httpc(cmd.Cmd):
                 # POST query means infos of (-d) data or (-f) file
                 if args.data and args.file:
                     # data and file cannot be used together
-                    print('[Error] Either [-d] or [-f] can be used but not both.')
+                    print('Error ---> -d and -f cannot be used at same time.')
                     sys.exit(0)
                 elif args.data and not args.file:
                     request = HttpRequest(url_parsed.hostname, url_parsed.path, args.data, headers)
@@ -242,7 +174,7 @@ class Httpc(cmd.Cmd):
                 # POST query means infos of (-d) data or (-f) file
                 if args.data and args.file:
                     # data and file cannot be used together
-                    print('[Error] Either [-d] or [-f] can be used but not both.')
+                    print('Error ---> -d and -f cannot be used at same time.')
                     sys.exit(0)
                 if args.data and not args.file :
                     request = HttpRequest(url_parsed.hostname, url_parsed.path, args.data,)
@@ -271,7 +203,7 @@ class Httpc(cmd.Cmd):
         client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         try:
             client_socket.connect(url_parsed.address)
-            print('--- Connect success ---')
+            # print('--- Connect success ---')
             # get response : data (Type: bytes) that need to be decoded by UTF-8 
             data = b''
             BUFF_SIZE = 1024
@@ -355,65 +287,46 @@ class Httpc(cmd.Cmd):
         parser_post.add_argument('-d','--data',help='Associates an inline data to the body HTTP POST request.')
         parser_post.add_argument('-f','--file',help='Associates the content of a file to the body HTTP POST request.')
         # add position argument URL, default is to make sure the last argument is URL, add \' for eval() function
-        parser_post.add_argument('http://httpbin.org/post',help='a valid http url',default= "'" + shlex.split(cmd)[-1] + "'" ,nargs='?' )
+        parser_post.add_argument('url',help='a valid http url',default= "'" + shlex.split(cmd)[-1] + "'" ,nargs='?' )
         
         # add optional argument -o filename
-        parser_post.add_argument('-o','--output',help='write the body of the response to the specific file')
+        # parser_post.add_argument('-o','--output',help='write the body of the response to the specific file')
 
         # assign the valid arguments
         # :test: post -v -h Content-Type:application/json http://httpbin.org/post -o output.txt
-        if self._is_valid_url(shlex.split(cmd)[-1]):
+        # if self._is_valid_url(shlex.split(cmd)[-1]):
             # shlex is to ignore the space in quotes " x x"
-            args = parser_post.parse_args(shlex.split(cmd)[:-1])
-        else:
-            args = parser_post.parse_args(shlex.split(cmd)[:-3] + shlex.split(cmd)[-2:] )
-            # print('[Debug] split args are : ' + str(shlex.split(cmd)[:-3]) + str(shlex.split(cmd)[-2:]))
-            args.url = "'" + shlex.split(cmd)[-3] + "'"
+        args = parser_post.parse_args(shlex.split(cmd)[:-1])
+        # else:
+        #     args = parser_post.parse_args(shlex.split(cmd)[:-3] + shlex.split(cmd)[-2:] )
+        #     # print('[Debug] split args are : ' + str(shlex.split(cmd)[:-3]) + str(shlex.split(cmd)[-2:]))
+        #     args.url = "'" + shlex.split(cmd)[-3] + "'"
 
         # print('[Debug] args is : ' + str(shlex.split(cmd) ))
 
-        print("[Debug] args are : " + str(args) )
+        # print("[Debug] args are : " + str(args) )
         # test
         # parser_post.print_help()
         
         # Check the URL is valid
-        if self._is_valid_url(args.url):
-            # recall HttpClient to send Http request
-        
-            # urlparse 
-            url_parsed = URL_PARSE(args.url)
+        # if self._is_valid_url(args.url):
+        # recall HttpClient to send Http request
+    
+        # urlparse 
+        url_parsed = URL_PARSE(args.url)
 
-            # check whether code is 3xx or not
-            # bonus marks : supports redirect
-            code_redirect = ['301','302']
-            while True:
-                # get request  
-                request = self._get_request(url_parsed,args,'POST')
-                # use socket to connect server, get response
-                response_content = self._client_socket_connect_server(url_parsed,request)
-                # print Output in the console depends on diffenrent requirements (-v)
-                self._print_details_by_verbose(args.verbose,response_content)
-                # check whether code is 3xx or not
-                if response_content.code in code_redirect :
-                    # change path
-                    # change path and re-parse url
-                    if self._is_valid_url(response_content.location):
-                        args.url = "'" + response_content.location + "'"
-                        url_parsed = URL_PARSE(args.url)
-                    else:
-                        url_parsed.path = response_content.location
-                    
-                    print('[Rediection] \'POST\' new location is : ' + response_content.location )
-                else:
-                    # other code cases
-                    print('\n[Debug] --- End ---\n')
-                    break                 
+        # check whether code is 3xx or not
+        # bonus marks : supports redirect
+        # code_redirect = ['301','302']
+        # while True:
+        # get request  
+        request = self._get_request(url_parsed,args,'POST')
+        # use socket to connect server, get response
+        response_content = self._client_socket_connect_server(url_parsed,request)
+        # print Output in the console depends on diffenrent requirements (-v)
+        self._print_details_by_verbose(args.verbose,response_content)
 
-            if args.output:
-                # if -o filename, write to the specified file
-                self._output_file(args, response_content)
-                
-        
+
 
 class URL_PARSE:
     '''
@@ -427,9 +340,6 @@ class URL_PARSE:
         self._assign_param_url()
 
     def _assign_param_url(self):
-        '''
-        The method is to assign parameters of URL.
-        '''
         # assign parameters of url
         self.scheme = self.url.scheme
         self.hostname = self.url.hostname
@@ -437,7 +347,7 @@ class URL_PARSE:
         self.query = self.url.query
         # the standard HTTP TCP port is 80, A2 uses 8080 default
         self.port = 80 if not self.url.port else self.url.port
-        print(f'[Debug] Port is : {self.port}')
+        # print(f'[Debug] Port is : {self.port}')
         self.ip_address = socket.gethostbyname(self.hostname)
         self.resource = self.path
         if self.url.query:
@@ -446,7 +356,101 @@ class URL_PARSE:
         self.address = (self.ip_address, self.port)
 
 
-# main
+class HttpRequest:
+    '''
+    The class is to deal with the request of Get and Post.
+
+    '''
+    def __init__(self, host, path, query, headers = 'User-Agent: Concordia-HTTP/1.0\r\n'):
+        '''
+        The method is to initial the request.
+        :param: host : hostname
+        :param: path : '/get' or '/post'
+        :param: query : GET is like as 'course=networking&assignment=1', POST is like '{"Assignment:1"}'
+        :param: headers : 'key:value' (eg. 'User-Agent':'Concordia-HTTP/1.0')
+        '''
+        self.host = host
+        self.path = path
+        self.query = query
+        # default headers
+        self.headers = 'User-Agent: Concordia-HTTP/1.0\r\n'
+        if self.headers == headers: pass
+        else:
+            # fix post bug : delete the '\r\n'
+            self.headers += headers 
+        # resource is combined with the path and query 
+        self.resource = self.path 
+        if self.query:
+            self.resource += '?' + self.query
+
+    def get_request(self, request_method):
+        if request_method == 'GET':
+            request = ('GET ' + self.resource + ' HTTP/1.0\r\n' + \
+                    self.headers + \
+                    'Host: ' + self.host + '\r\n\r\n')
+        elif request_method == 'POST':
+            # HTTP POST Request
+            # get content length from the body (query) exists
+            content_length = str(len(self.query))
+            # POST query means infos of (-d) data or (-f) file (Body data)    
+            request = ('POST ' + self.path + ' HTTP/1.0\r\n' + \
+                    self.headers \
+                    + 'Content-Length: ' + content_length + '\r\n' \
+                    + 'Host: ' + self.host + '\r\n\r\n'
+                    # + 'Connection: close\r\n\r\n'
+                    ) 
+            # add Body Http Post request, use query directly instead of json methods
+            request += self.query
+
+            # print(f'[Debug] request is : \n {request}')
+            # print('[Debug] Post query is : ' + self.query + '\n[Debug] Length is : ' + str(len(self.query)))
+        else:
+            return None
+
+        return request
+
+
+class HttpResponse:
+    '''
+    The class is to parse and split the response from server.
+    '''
+
+    def __init__(self,response):
+        '''
+        The method is to initial the response.
+        :param: response
+        '''
+        # use errors = "ignore" to solve the UnicodeError that cannot decode 'utf-8'
+        self.content = response.decode('utf-8', errors="ignore" )
+        self.parseContent()
+
+    def parseContent(self):
+        '''
+        The method is to parse the content.
+        '''   
+        content = self.content.split('\r\n\r\n')
+        self.header = content[0]
+        self.body = content[1]
+        # get status code: 200 or 3xx, etc
+        self.header_lines = self.header.split('\r\n')
+        self.header_info = self.header_lines[0].split(' ')
+        self.code = self.header_info[1]
+
+        # rediection code (numbers starts with 3xx) 
+        # includes 300 Multiple Choices, 301 Moved Permanently, 302 Moved Temporarily, 304 Not Modified
+        # rediect_code = ['301','302']
+        # self.location = ''
+        # if self.code in rediect_code:
+        #     # get new location path
+        #     for index in range(len(self.header_lines)):
+        #         line_location = re.match(r'Location',self.header_lines[index],re.M|re.I)
+        #         if line_location is not None: 
+        #             self.location = self.header_lines[index].split(' ')[1]
+        #             break
+        #     # self.location = self.header_lines[5].split(' ')[1]
+        #     print('[Debug] Rediection Location is : ' + self.location)
+
+
 if __name__ == '__main__':
     try:
         Httpc().cmdloop()
