@@ -331,7 +331,7 @@ class HttpResponse:
         content = self.content.split('\r\n\r\n')
         self.header = content[0]
         self.body = content[1]
-        # get status code: 200 or 3xx, etc
+        
         self.header_lines = self.header.split('\r\n')
         self.header_info = self.header_lines[0].split(' ')
         self.code = self.header_info[1]
@@ -343,4 +343,4 @@ if __name__ == '__main__':
     try:
         Httpc().cmdloop()
     except KeyboardInterrupt:
-        print('Thanks for using! Bye!')
+        print('End of project! Bye!')
