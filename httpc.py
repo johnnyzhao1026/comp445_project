@@ -6,7 +6,6 @@ import argparse
 import re
 import socket
 from urllib.parse import urlparse
-from HttpClient import HttpRequest, HttpResponse
 import shlex # ignore the space in quotes " x x"
 
 class Httpc(cmd.Cmd):    
@@ -75,73 +74,21 @@ class Httpc(cmd.Cmd):
         # add positional argument URL, fix bug : the no expect argument : URL 
         parser_get.add_argument('url',help='a valid http url',default=cmd.split()[-1] ,nargs='?' )
 
-        # add optional argument -o filename
-        # parser_get.add_argument('-o','--output',help='write the body of the response to the specific file')
-
-        # assign the valid arguments
-        # if self._is_valid_url(cmd.split()[-1]):
+    
         args = parser_get.parse_args(cmd.split()[:-1])
-        # else:
-        #     args = parser_get.parse_args(cmd.split()[:-3] + cmd.split()[-2:] )
-        #     args.url = cmd.split()[-3]
-
-        # Check the URL is valid
-        # if self._is_valid_url(args.url):
-        # recall HttpClient to send Http request
     
         # urlparse 
         url_parsed = URL_PARSE(args.url)
         
-        # check whether code is 3xx or not
-        # code_redirect = ['301','302']
-        # while True:    
-            # get request  
+     
         request = self._get_request(url_parsed,args,'GET')
             # use socket to connect server, get response
-        response_content = self._client_socket_connect_server(url_parsed,request)
+        response_content = self.connectToServer(url_parsed,request)
             # print Output in the console depends on diffenrent requirements (-v)
-        self._print_details_by_verbose(args.verbose,response_content)
+        self.printOutPut(args.verbose,response_content)
 
     
-    # some private methods
-    # def _is_valid_url(self, url):
-    #     '''
-    #     The method is to check if the url is valid or not.
-    #     :param: url
-    #     :return: boolean
-    #     '''
-    #     # if no quote starts with url, then add it. 
-    #     if url.startswith('\''):
-    #         pass
-    #     else:
-    #         url = '\'' + url + '\''
-    #     # use eval() to omit the ' ' 
-    #     if re.match(r'^https?:/{2}\w.+$',eval(url)):
-    #         # print('[Debug] valid url : ' + url)
-    #         return True
-    #     else: 
-    #         # print('[Debug] invalid url')
-    #         return False 
-
-    # def _is_valid_header(self, header):
-    #     '''
-    #     The method is to check if the header is valid or not.
-    #     :param: header
-    #     :return: boolean
-    #     '''
-    #     # case considers one more key:value
-    #     if len(header) >= 1:
-    #         # check whether header is valid one by one
-    #         for i in range(len(header)):
-    #             if re.match(r'(.+:.+)',header[i]):
-    #                 print('[Debug] valid header : ' + header[i])
-    #             else: 
-    #                 print('[Debug] invalid header : ' + header[i])
-    #                 return False
-    #     else:
-    #         print('[Debug] no header ')
-    #         return False
-    #     return True
+  
 
     def _get_request(self, url_parsed, args, request_method):
         if args.header:
@@ -191,7 +138,7 @@ class Httpc(cmd.Cmd):
 
         return request
 
-    def _client_socket_connect_server(self, url_parsed, request):
+    def connectToServer(self, url_parsed, request):
         '''
         The method is to connect server using client socket.
         :param: url_parsed
@@ -203,22 +150,13 @@ class Httpc(cmd.Cmd):
         client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         try:
             client_socket.connect(url_parsed.address)
-            # print('--- Connect success ---')
-            # get response : data (Type: bytes) that need to be decoded by UTF-8 
+       
             data = b''
             BUFF_SIZE = 1024
             while True:
                 # send data
                 client_socket.sendall(request.encode("utf-8"))
-                # receive data
-                # MSG_WAITALL waits for full request or error
-
-                # response = client_socket.recv(len(request), socket.MSG_WAITALL)
-                # if response:
-                #     data += response
-                # else: break
-
-                # instead of above method to FIX BrokenPipe [Error 32], since client closed before recv all response.
+             
                 response = client_socket.recv(BUFF_SIZE)
                 data += response
                 if len(response) < BUFF_SIZE:
@@ -233,7 +171,7 @@ class Httpc(cmd.Cmd):
             
             return response_content
         
-    def _print_details_by_verbose(self,args_verbose, response_content):
+    def printOutPut(self,args_verbose, response_content):
         '''
         The method is to show different output depends on verbose.
         :param: args_verbose
@@ -262,17 +200,7 @@ class Httpc(cmd.Cmd):
         print(f'[Output] write the body of the response to the {args.output}')
 
     def do_post(self,cmd):
-        '''
-        The method is to executes a HTTP POST request for a given URL with inline data or from file.
-        :param: cmd : command from console
-        :test: httpc post -h Content-Type:application/json -d '{"Assignment": 1}' http://httpbin.org/post
-        :test: httpc post -v -h Content-Type:application/json http://httpbin.org/post
-        :test: httpc post -v -h Content-Type:application/json -d '{"Assignment": 1}' http://httpbin.org/post
-        :test: httpc post -v -h Content-Type:application/json -f test-file.txt http://httpbin.org/post
-        :test: httpc post -v -h Content-Type:application/json -d '{"Test": "Conflict"}' -f test-file.txt http://httpbin.org/post
-        :test -o filename: post -v -h Content-Type:application/json http://httpbin.org/post -o output.txt
-        :test -o filename: post -v -h Content-Type:application/json -d '{"Assignment": 1}' http://httpbin.org/post -o output.txt
-        '''
+       
         # parse the command from console
         parser_post = argparse.ArgumentParser(description='Post executes a HTTP POST request for a given URL with inline data or from file.'
         , conflict_handler = 'resolve') # conflict_handle is to solve the conflict issue of help argument.
@@ -289,29 +217,9 @@ class Httpc(cmd.Cmd):
         # add position argument URL, default is to make sure the last argument is URL, add \' for eval() function
         parser_post.add_argument('url',help='a valid http url',default= "'" + shlex.split(cmd)[-1] + "'" ,nargs='?' )
         
-        # add optional argument -o filename
-        # parser_post.add_argument('-o','--output',help='write the body of the response to the specific file')
-
-        # assign the valid arguments
-        # :test: post -v -h Content-Type:application/json http://httpbin.org/post -o output.txt
-        # if self._is_valid_url(shlex.split(cmd)[-1]):
-            # shlex is to ignore the space in quotes " x x"
+  
         args = parser_post.parse_args(shlex.split(cmd)[:-1])
-        # else:
-        #     args = parser_post.parse_args(shlex.split(cmd)[:-3] + shlex.split(cmd)[-2:] )
-        #     # print('[Debug] split args are : ' + str(shlex.split(cmd)[:-3]) + str(shlex.split(cmd)[-2:]))
-        #     args.url = "'" + shlex.split(cmd)[-3] + "'"
-
-        # print('[Debug] args is : ' + str(shlex.split(cmd) ))
-
-        # print("[Debug] args are : " + str(args) )
-        # test
-        # parser_post.print_help()
-        
-        # Check the URL is valid
-        # if self._is_valid_url(args.url):
-        # recall HttpClient to send Http request
-    
+ 
         # urlparse 
         url_parsed = URL_PARSE(args.url)
 
@@ -322,9 +230,9 @@ class Httpc(cmd.Cmd):
         # get request  
         request = self._get_request(url_parsed,args,'POST')
         # use socket to connect server, get response
-        response_content = self._client_socket_connect_server(url_parsed,request)
+        response_content = self.connectToServer(url_parsed,request)
         # print Output in the console depends on diffenrent requirements (-v)
-        self._print_details_by_verbose(args.verbose,response_content)
+        self.printOutPut(args.verbose,response_content)
 
 
 
@@ -362,13 +270,7 @@ class HttpRequest:
 
     '''
     def __init__(self, host, path, query, headers = 'User-Agent: Concordia-HTTP/1.0\r\n'):
-        '''
-        The method is to initial the request.
-        :param: host : hostname
-        :param: path : '/get' or '/post'
-        :param: query : GET is like as 'course=networking&assignment=1', POST is like '{"Assignment:1"}'
-        :param: headers : 'key:value' (eg. 'User-Agent':'Concordia-HTTP/1.0')
-        '''
+     
         self.host = host
         self.path = path
         self.query = query
@@ -399,11 +301,9 @@ class HttpRequest:
                     + 'Host: ' + self.host + '\r\n\r\n'
                     # + 'Connection: close\r\n\r\n'
                     ) 
-            # add Body Http Post request, use query directly instead of json methods
             request += self.query
 
-            # print(f'[Debug] request is : \n {request}')
-            # print('[Debug] Post query is : ' + self.query + '\n[Debug] Length is : ' + str(len(self.query)))
+
         else:
             return None
 
@@ -436,19 +336,7 @@ class HttpResponse:
         self.header_info = self.header_lines[0].split(' ')
         self.code = self.header_info[1]
 
-        # rediection code (numbers starts with 3xx) 
-        # includes 300 Multiple Choices, 301 Moved Permanently, 302 Moved Temporarily, 304 Not Modified
-        # rediect_code = ['301','302']
-        # self.location = ''
-        # if self.code in rediect_code:
-        #     # get new location path
-        #     for index in range(len(self.header_lines)):
-        #         line_location = re.match(r'Location',self.header_lines[index],re.M|re.I)
-        #         if line_location is not None: 
-        #             self.location = self.header_lines[index].split(' ')[1]
-        #             break
-        #     # self.location = self.header_lines[5].split(' ')[1]
-        #     print('[Debug] Rediection Location is : ' + self.location)
+
 
 
 if __name__ == '__main__':
