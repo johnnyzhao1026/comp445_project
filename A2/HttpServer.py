@@ -1,31 +1,14 @@
-'''
-COMP 445 lab assignment 2
-
-@ authors: Hualin Bai (40053833), Qichen Liu (40055916)
-@ date: 2021-10-23
-@ version: 1.0.0
-'''
 import logging
 import re
 from FileManager import FileOperation
 
 class HttpMethod:
-    '''
-    The class is to store request method name.
-    '''
     Get = "GET"
     Post = "POST"
     Invalid = "Invalid"
 
 class HttpRequestParser:
-    '''
-    The class is to parser the Http Request from Client.
-    '''
     def __init__(self, request):
-        '''
-        The method is to parser the request from Client.
-        :param: request
-        '''
         # default values
         self.contentType = "application/json"
         self.operation = ''
@@ -54,9 +37,6 @@ class HttpRequestParser:
 
 
     def _set_operation(self):
-        '''
-        The method is to set the file operation by different request.
-        '''
         # GET method
         if self.method == HttpMethod.Get and self.operation != FileOperation.Download:
             # basic GET request
@@ -64,14 +44,12 @@ class HttpRequestParser:
                 if self.resource in ['/get','/get?']:
                     self.param = ''
                 else:
-                    # split /get?course=networking&assignment=1
                     temp = self.resource.split('?')[-1]
                     result = {}
                     for item in temp.split('&'):
                         key, value = item.split('=')
                         result[key] = value
                     self.param = result   
-                    # print(f'[Debug] Params : \n {result}')
                     logging.debug(f'Params : {result}')
                 self.operation = FileOperation.GetResource
 
@@ -82,7 +60,6 @@ class HttpRequestParser:
                     self.operation = FileOperation.GetFileContent
                     # ignore the first '/'
                     self.fileName = self.resource[1:]
-                    # print(f'[Debug] FileName is : {self.fileName}')
                     logging.debug(f'FileName is : {self.fileName}')
                 else:
                     self.operation = FileOperation.Invalid

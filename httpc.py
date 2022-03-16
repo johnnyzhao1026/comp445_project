@@ -15,7 +15,7 @@ class Httpc(cmd.Cmd):
     '''
 
     intro = '\nWelcome to httpc, Type help or ? to list commands. Press ''Ctrl+C'' or Type ''quit'' to terminate.\n'
-    prompt = 'httpc '
+    prompt = '\nhttpc '
 
 
     def do_help(self, arg):
@@ -182,8 +182,8 @@ class Httpc(cmd.Cmd):
         if args_verbose:
             print('--- Details ---')
             print(response_content.content)
-            print(response_content.header)
-            print(response_content.body)
+            # print(response_content.header)
+            # print(response_content.body)
         # other cases
         else: 
             # only print the content.body

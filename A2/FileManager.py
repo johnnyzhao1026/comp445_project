@@ -10,9 +10,6 @@ import os
 import re
 import threading
 class FileOperation:
-    '''
-    The class is to store different operations of File Manager.
-    '''
     Invalid = 0
     GetFileList = 1
     GetFileContent = 2
@@ -22,9 +19,6 @@ class FileOperation:
     Download = 6
 
 class FileManager:
-    '''
-    The class is to manager files in the data directory.
-    '''
     lock = threading.Lock()
 
     def __init__(self):
@@ -35,11 +29,6 @@ class FileManager:
                             '505':'HTTP Version Not Support'}
 
     def get_files_list_in_dir(self, dir_path):
-        '''
-        The method is to get files list in the data directory.
-        :param: dir_path
-        :return: files list
-        '''
         lst_files = []
 
         for root, dirs, files in os.walk(dir_path):
@@ -57,11 +46,6 @@ class FileManager:
 
 
     def get_file_content(self, file_name, dir_path):
-        '''
-        The method is to get file content by filename.
-        :param: filename
-        :return: fileContent
-        '''
         # Secure Access
         file_list, file_name, dir_path = self._check_file_name(file_name, dir_path)
         if len(file_list) > 0:
@@ -90,14 +74,6 @@ class FileManager:
 
 
     def _check_file_name(self, file_name, dir_path):
-        '''
-        The method is to check if the file name is valid and has one more paths.
-        :param: file_name
-        :param: dir_path
-        :return: file_list (if length is 0, then invalid file)
-        :return: file_name
-        :return: dir_path
-        '''
         file_list = []
         # Secure Access
         if re.match(r'\.\.\/', file_name):
@@ -119,20 +95,10 @@ class FileManager:
 
     
     def post_file_content(self, file_name, dir_path, content_body):
-        '''
-        The method is to create/overwrite the file named file_name in dir_path,
-        with the content of the body of the request.
-        :param: file_name
-        :param: dir_path
-        :param: content_body
-        :return: content of the response
-        '''
          # Check Secure Access
         file_list, file_name, dir_path = self._check_file_name(file_name, dir_path)
         
         if len(file_list)>0:
-            # TODO: change type formate By Content-Type
-            # TODO: Consider Thread Lock
             FileManager.lock.acquire()
             try:
                 # creae or overwrite the file named file_name
@@ -142,8 +108,6 @@ class FileManager:
                 self.status = '400'
                 self.content = f'Fail to write content into \'{dir_path}/{file_name}\', Error is {err} '
             else:
-                # TODO: Consider Thread Lock
-                # set status and content of the response
                 self.status = '200'
                 self.content = f'Success to write content into \'{dir_path}/{file_name}\' '
                 FileManager.lock.release()
