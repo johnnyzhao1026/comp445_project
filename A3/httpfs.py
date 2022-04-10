@@ -1,10 +1,4 @@
-'''
-COMP 445 lab assignment 2
 
-@ authors: Hualin Bai (40053833), Qichen Liu (40055916)
-@ date: 2021-10-18
-@ version: 1.0.0
-'''
 
 import sys
 import cmd
@@ -26,18 +20,6 @@ class Httpfs(cmd.Cmd):
     """ 
 
     title = '''
-
-    █████   █████  █████     █████                 ██████         
-   ░░███   ░░███  ░░███     ░░███                 ███░░███        
-    ░███    ░███  ███████   ███████   ████████   ░███ ░░░   █████ 
-    ░███████████ ░░░███░   ░░░███░   ░░███░░███ ███████    ███░░  
-    ░███░░░░░███   ░███      ░███     ░███ ░███░░░███░    ░░█████ 
-    ░███    ░███   ░███ ███  ░███ ███ ░███ ░███  ░███      ░░░░███
-    █████   █████  ░░█████   ░░█████  ░███████   █████     ██████ 
-    ░░░░░   ░░░░░    ░░░░░     ░░░░░  ░███░░░   ░░░░░     ░░░░░░  
-                                      ░███                        
-                                      █████                       
-                                      ░░░░░                        
 
     Welcome to httpfs, Type help or ? to list commands.
     Press 'Ctrl+C' or Type 'quit' to terminate.
@@ -73,24 +55,16 @@ usage: httpfs [-v] [-p PORT] [-d PATH-TO-DIR]
             ''')
     
     def do_clear(self, arg):
-        '''
-        The method is to clear the screen.
-        '''
+     
         print('\033c')
 
     def do_quit(self, arg):
-        '''
-        The method is to quit the app.
-        '''
+
         print('Thanks for using! Bye!')
         sys.exit(0)
 
     def _config_logging(self, verbose):
-        '''
-        The method is to config logging.
-        :param: verbose
-        :return: logger
-        '''
+
         FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
         if verbose:
             logging.basicConfig(format=FORMAT, datefmt='%Y/%m/%d %H:%M:%S', stream=sys.stdout, level=logging.DEBUG)
@@ -197,12 +171,6 @@ usage: httpfs [-v] [-p PORT] [-d PATH-TO-DIR]
                         server_udp.send_msg(server_response.encode("utf-8"))
                     logging.debug('try to receiving request...')
                             
-          
-                    
-                
-        
-           
-    
     
     def _run_server(self, host, port, dir_path):
         '''

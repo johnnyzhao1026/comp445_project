@@ -8,7 +8,7 @@ class Packet:
     Packet represents a simulated UDP packet. 
     Modified by EXAMPLE, add param (is_last_packet).
     """
-
+    # message structure
     def __init__(self, packet_type, seq_num, peer_ip_addr, peer_port, payload):
         self.packet_type = int(packet_type)
         self.seq_num = int(seq_num)

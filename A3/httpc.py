@@ -1,11 +1,3 @@
-'''
-COMP 445 lab assignment 1
-
-@ authors: Hualin Bai (40053833), Qichen Liu (40055916)
-@ date: 2021-09-20
-@ version: 2.0.0
-'''
-
 import sys
 import cmd
 import argparse
@@ -23,15 +15,6 @@ class Httpc(cmd.Cmd):
     """ 
     
     title = '''
-
-     **      ** ********** ********** *******    ****** 
-    /**     /**/////**/// /////**/// /**////**  **////**
-    /**     /**    /**        /**    /**   /** **    // 
-    /**********    /**        /**    /******* /**       
-    /**//////**    /**        /**    /**////  /**       
-    /**     /**    /**        /**    /**      //**    **
-    /**     /**    /**        /**    /**       //****** 
-    //      //     //         //     //         ////// 
 
     Welcome to httpc, Type help or ? to list commands.
     Press 'Ctrl+C' or Type 'quit' to terminate.

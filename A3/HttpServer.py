@@ -1,10 +1,4 @@
-'''
-COMP 445 lab assignment 2
 
-@ authors: Hualin Bai (40053833), Qichen Liu (40055916)
-@ date: 2021-10-23
-@ version: 1.0.0
-'''
 import logging
 import re
 from FileManager import FileOperation

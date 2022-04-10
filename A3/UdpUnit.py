@@ -73,6 +73,7 @@ class UdpUnit(object):
             if pkt.packet_type == PACKET_TYPE_SYN:
                 pkt = self.pkt_builder.build(PACKET_TYPE_SYN_ACK)
                 # send SYN-ACK to client
+                # send to router
                 self.conn.sendto(pkt.to_bytes(), self.router_addr)
                 # wait to receive ACK from client
                 pkt = self.get_packet(TIME_ALIVE)
@@ -113,6 +114,7 @@ class UdpUnit(object):
         if pkt is not None and pkt.packet_type == PACKET_TYPE_SYN_ACK:
             # clent send ACK to server
             pkt = self.pkt_builder.build(PACKET_TYPE_ACK)
+            # send packet to router
             self.conn.sendto(pkt.to_bytes(),self.router_addr)
             logging.info('Connection is established!!!')
             return True
@@ -131,6 +133,7 @@ class UdpUnit(object):
         self.conn.settimeout(TIME_ALIVE)
         # send request
         pkt = self.pkt_builder.build(PACKET_TYPE_DATA, 0, request.encode("utf-8"))
+        
         self.conn.sendto(pkt.to_bytes(), self.router_addr) 
         logging.debug('client is sending request to server...')
         # waiting for server send ACK for request
