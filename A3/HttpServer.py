@@ -1,5 +1,4 @@
 
-import logging
 import re
 from FileManager import FileOperation
 
@@ -66,7 +65,7 @@ class HttpRequestParser:
                         result[key] = value
                     self.param = result   
                     # print(f'[Debug] Params : \n {result}')
-                    logging.debug(f'Params : {result}')
+                    print(f'Params : {result}')
                 self.operation = FileOperation.GetResource
 
             elif self.resource == '/':
@@ -77,7 +76,7 @@ class HttpRequestParser:
                     # ignore the first '/'
                     self.fileName = self.resource[1:]
                     # print(f'[Debug] FileName is : {self.fileName}')
-                    logging.debug(f'FileName is : {self.fileName}')
+                    print(f'FileName is : {self.fileName}')
                 else:
                     self.operation = FileOperation.Invalid
 

@@ -1,4 +1,3 @@
-import logging
 import math
 from packet import *
 from config import *
@@ -48,7 +47,7 @@ class SlidingWindow:
         '''
         # num of packets
         self.num_frames = math.ceil(len(msg)/PAYLOAD_SIZE)
-        logging.debug(f'num of frames is : {self.num_frames}')
+        print(f'num of frames is : {self.num_frames}')
         
         # initial all frames in sender window
         for i in range(self.num_frames):

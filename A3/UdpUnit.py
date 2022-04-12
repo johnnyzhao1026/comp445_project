@@ -1,4 +1,3 @@
-import logging
 import math 
 import time
 import socket
@@ -30,7 +29,7 @@ class UdpUnit(object):
         try:
             data, addr = self.conn.recvfrom(PACKET_SIZE)
             pkt = Packet.from_bytes(data)
-            logging.debug("Received Packet is : {}:{}".format(pkt,pkt.payload))
+            print("Received Packet is : {}:{}".format(pkt,pkt.payload))
             self.router_addr = addr
             
             # create pkt_builder
@@ -40,7 +39,7 @@ class UdpUnit(object):
             return pkt
                 
         except socket.timeout:
-            logging.debug('Time out for recvfrom packet !!!')
+            print('Time out for recvfrom packet !!!')
             return None
         
         # finally:
@@ -51,7 +50,7 @@ class UdpUnit(object):
         The method is to run server to listen port
         '''
         self.conn.bind(('',SERVER_PORT))
-        logging.info("Server is listening at {}:{}".format(SERVER_IP,SERVER_PORT))
+        print("Server is listening at {}:{}".format(SERVER_IP,SERVER_PORT))
             
     
     def connect_client(self):
@@ -59,14 +58,13 @@ class UdpUnit(object):
         The method is to mimic TCP 3-way handshaking for server to connect client.
         :return: boolean
         '''
-        # self.conn.bind(('',SERVER_PORT))
-        # logging.info("Server is listening at {}:{}".format(SERVER_IP,SERVER_PORT))
+        # self.conn.bind(('',SERVER_PORT)
         
         # receive packet from router
         # pkt = self.get_packet(TIME_ALIVE)
         pkt = self.get_packet(TIME_ALIVE)
         if pkt is None:
-            logging.debug('Connecting is timeout!')
+            print('Connecting is timeout!')
             return False
         else:
             # check mimic 3-way handshaking (SYN => SYN-ACK => ACK)
@@ -79,17 +77,17 @@ class UdpUnit(object):
                 pkt = self.get_packet(TIME_ALIVE)
                 if pkt.packet_type == PACKET_TYPE_ACK:
                     # 3-way handshaking completed
-                    logging.info('Client connecting is established!')
+                    print('Client connecting is established!')
                     return True
                 elif pkt.seq_num == 0 and len(pkt.payload) > 0:
-                    logging.debug('Have received Client Request ...')
+                    print('Have received Client Request ...')
                     return True
                     
                 else:
-                    logging.debug('Server Not received ACK, Fail to connect client. ')
+                    print('Server Not received ACK, Fail to connect client. ')
                     return False
             else:
-                logging.debug('Server Not received SYN-ACK, Fail to connect client. ')
+                print('Server Not received SYN-ACK, Fail to connect client. ')
                 return False
     
     def connect_server(self):
@@ -97,7 +95,7 @@ class UdpUnit(object):
         The method is to mimic TCP 3-way handshaking for client to connect server.
         :return: boolean
         '''
-        logging.info('Connecting to {}:{}'.format(SERVER_IP,SERVER_PORT))
+        print('Connecting to {}:{}'.format(SERVER_IP,SERVER_PORT))
         self.router_addr = (ROUTER_IP,ROUTER_PORT)
         peer_ip = ipaddress.ip_address(socket.gethostbyname(SERVER_IP))
         # initial pkt_builder 
@@ -108,7 +106,7 @@ class UdpUnit(object):
         pkt = self.pkt_builder.build(PACKET_TYPE_SYN)
         self.conn.sendto(pkt.to_bytes(), self.router_addr)
         # waiting SYN-ACK from server
-        logging.debug('Client waiting for SYN-ACK from server')
+        print('Client waiting for SYN-ACK from server')
         # receive packet
         pkt = self.get_packet(TIME_ALIVE)
         if pkt is not None and pkt.packet_type == PACKET_TYPE_SYN_ACK:
@@ -116,11 +114,11 @@ class UdpUnit(object):
             pkt = self.pkt_builder.build(PACKET_TYPE_ACK)
             # send packet to router
             self.conn.sendto(pkt.to_bytes(),self.router_addr)
-            logging.info('Connection is established!!!')
+            print('Connection is established!!!')
             return True
         # consider connect long time
         else:
-            logging.debug('Fail to connection ! Unexpected packet: {}'.format(pkt))
+            print('Fail to connection ! Unexpected packet: {}'.format(pkt))
             # self.conn.close()
             return False
             
@@ -135,7 +133,7 @@ class UdpUnit(object):
         pkt = self.pkt_builder.build(PACKET_TYPE_DATA, 0, request.encode("utf-8"))
         
         self.conn.sendto(pkt.to_bytes(), self.router_addr) 
-        logging.debug('client is sending request to server...')
+        print('client is sending request to server...')
         # waiting for server send ACK for request
         # pkt = self.get_packet(TIME_OUT_RECV)
         try:
@@ -143,14 +141,14 @@ class UdpUnit(object):
             if data is not None:
                 pkt = Packet.from_bytes(data)
             
-                logging.debug('client is waiting ACK-request from server...')
+                print('client is waiting ACK-request from server...')
                 if pkt is not None and pkt.packet_type == PACKET_TYPE_ACK and pkt.seq_num == 0  and len(pkt.payload) > 0 \
                     or pkt.packet_type == PACKET_TYPE_DATA:
-                    logging.debug(f'Get request pkt: #{pkt.seq_num}, type:{pkt.packet_type}')
+                    print(f'Get request pkt: #{pkt.seq_num}, type:{pkt.packet_type}')
                     return True
                 
         except socket.timeout:
-            logging.debug('client recv nothing from server, might be dropped...')
+            print('client recv nothing from server, might be dropped...')
             return False
         
     
@@ -166,7 +164,7 @@ class UdpUnit(object):
                 
                 if pkt is not None and pkt.packet_type == PACKET_TYPE_DATA and pkt.seq_num == 0:
                     pkt = self.pkt_builder.build(PACKET_TYPE_ACK, 0, pkt.payload)
-                    logging.debug('server is sending ACK-request to client...')
+                    print('server is sending ACK-request to client...')
                     
                     # send ACK-request
                     self.conn.sendto(pkt.to_bytes(),self.router_addr)
@@ -174,7 +172,7 @@ class UdpUnit(object):
                     return pkt.payload
         except socket.timeout:
             
-            logging.debug('recv nothing, client pkt might be dropped...')
+            print('recv nothing, client pkt might be dropped...')
             
             return None
     
@@ -187,7 +185,7 @@ class UdpUnit(object):
             
         if pkt is not None and pkt.packet_type == PACKET_TYPE_DATA and pkt.seq_num == 0:
             pkt = self.pkt_builder.build(PACKET_TYPE_ACK, 0, pkt.payload)
-            logging.debug('server is sending ACK-request to client...')
+            print('server is sending ACK-request to client...')
             
             # send ACK-request
             self.conn.sendto(pkt.to_bytes(),self.router_addr)
@@ -200,7 +198,7 @@ class UdpUnit(object):
         '''
         The method is to close the connectiong
         '''
-        logging.info('Disconnecting...')
+        print('Disconnecting...')
         self.conn.close()
     
     
@@ -221,7 +219,7 @@ class UdpUnit(object):
                 pkt = self.pkt_builder.build(PACKET_TYPE_DATA, f.seq_num, f.payload)
                 # send pkt to receiver
                 self.conn.sendto(pkt.to_bytes(),self.router_addr)
-                logging.debug(f'Re-send pkt is : {pkt.seq_num}, Type : {pkt.packet_type}')
+                print(f'Re-send pkt is : {pkt.seq_num}, Type : {pkt.packet_type}')
                 # set timer
                 f.timer = time.time()
                 # update send state
@@ -253,13 +251,13 @@ class UdpUnit(object):
                 self.conn.settimeout(TIME_OUT)
                 data, sender = self.conn.recvfrom(PACKET_SIZE)
                 pkt = Packet.from_bytes(data)
-                logging.debug(f'Received packet is : {pkt.seq_num}, type is : {pkt.packet_type}')
+                print(f'Received packet is : {pkt.seq_num}, type is : {pkt.packet_type}')
                 if pkt.packet_type == PACKET_TYPE_ACK:
                     # update send window
                     send_window.update_sender_window(pkt.seq_num)
             
             except socket.timeout:
-                logging.debug('TimeOut when waiting ACK')
+                print('TimeOut when waiting ACK')
                 # reset send state, then the pkt will be re-sent
                 for i in range(send_window.ptr, send_window.ptr + WINDOW_SIZE):
                     if i >= len(send_window.list_sender):
@@ -271,7 +269,7 @@ class UdpUnit(object):
             
             send_window.check_sender_finished()
             
-        logging.debug('handle_sender has checked the send window')
+        print('handle_sender has checked the send window')
         
         
     def recv_msg(self):
@@ -285,7 +283,7 @@ class UdpUnit(object):
             pkt = self.get_packet(TIME_OUT_RECV)
             # case: no msg
             if pkt is None:
-                logging.debug('No pkt received in timeout time')
+                print('No pkt received in timeout time')
                 break
             # case: discard possible pkt from handshaking
             elif pkt.seq_num == 0 or pkt.packet_type == PACKET_TYPE_ACK:

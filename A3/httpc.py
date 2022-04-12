@@ -6,7 +6,6 @@ import socket
 from urllib.parse import urlparse
 from HttpClient import HttpRequest, HttpResponse
 import shlex # ignore the space in quotes " x x"
-import logging
 # from UdpLibrary import *
 from UdpUnit import *
 class Httpc(cmd.Cmd):
@@ -24,18 +23,6 @@ class Httpc(cmd.Cmd):
     intro = "\033[1;33;40m{}\033[0m".format(title)
     prompt = 'httpc '
 
-    def _config_logging(self, verbose):
-        '''
-        The method is to config logging.
-        :param: verbose
-        :return: logger
-        '''
-        FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
-        if verbose:
-            logging.basicConfig(format=FORMAT, datefmt='%Y/%m/%d %H:%M:%S', stream=sys.stdout, level=logging.DEBUG)
-        else:
-            logging.basicConfig(format=FORMAT, datefmt='%Y/%m/%d %H:%M:%S', stream=sys.stdout, level=logging.INFO)
-        
 
     # basic httpc help menu
     def do_help(self, arg):
@@ -131,8 +118,6 @@ class Httpc(cmd.Cmd):
         print("[Debug] args are : " + str(args) )
         # print(args.url)
 
-        # set logging config
-        self._config_logging(args.verbose)
         
         # Check the URL is valid
         if self._is_valid_url(args.url):
@@ -279,7 +264,7 @@ class Httpc(cmd.Cmd):
             while True:
                 if client_udp.connect_server():
                     # send request
-                    logging.debug(f'request is type {type(request)}')
+                    print(f'request is type {type(request)}')
                     break
                 # consider miss client request, need resend
                 
@@ -295,7 +280,7 @@ class Httpc(cmd.Cmd):
                     # receive response
                     data = client_udp.recv_msg()
                     if data is None:
-                        logging.debug('Client did not receive response')
+                        print('Client did not receive response')
                         print('[Debug] Client did not receive response')
                         sys.exit(0)
                     # decode data, and then parse content
@@ -307,14 +292,14 @@ class Httpc(cmd.Cmd):
                 #     while True:
                 #         client_udp.connect_server()
             # else:
-            #     logging.debug('Client Fail to send response to server')
+            #     print('Client Fail to send response to server')
         
             # else:
-            #     logging.debug('Fail to connect to server.')
+            #     print('Fail to connect to server.')
             #     sys.exit(0)
             
         except Exception as e:
-            logging.debug('Error: {}'.format(e))
+            print('Error: {}'.format(e))
             
         
         
@@ -425,9 +410,7 @@ class Httpc(cmd.Cmd):
         print("[Debug] args are : " + str(args) )
         # test
         # parser_post.print_help()
-        
-        # set logging config
-        self._config_logging(args.verbose)
+    
         
         
         # Check the URL is valid

@@ -7,7 +7,6 @@ import re
 import json
 import socket
 import threading
-import logging
 from HttpServer import HttpMethod, HttpRequestParser
 from FileManager import FileOperation, FileManager
 
@@ -63,15 +62,6 @@ usage: httpfs [-v] [-p PORT] [-d PATH-TO-DIR]
         print('Thanks for using! Bye!')
         sys.exit(0)
 
-    def _config_logging(self, verbose):
-
-        FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
-        if verbose:
-            logging.basicConfig(format=FORMAT, datefmt='%Y/%m/%d %H:%M:%S', stream=sys.stdout, level=logging.DEBUG)
-        else:
-            logging.basicConfig(format=FORMAT, datefmt='%Y/%m/%d %H:%M:%S', stream=sys.stdout, level=logging.INFO)
-        
-
     def emptyline(self):
         '''
         The override method is to use default arguments that -v: False, -p PORT: 8080 and -d PATH-TO-DIR: current dir,
@@ -94,9 +84,7 @@ usage: httpfs [-v] [-p PORT] [-d PATH-TO-DIR]
             args = parser_server.parse_args()
             # print(f'[Debug] verbose is : {args.verbose}, port is : {args.port}, path-to-dir is : {args.dir}')
             
-            # set logging config
-            self._config_logging(args.verbose)
-            logging.debug(f'verbose is : {args.verbose}, port is : {args.port}, path-to-dir is : {args.dir}')
+            print(f'verbose is : {args.verbose}, port is : {args.port}, path-to-dir is : {args.dir}')
             
             # run http file server
             # self._run_server('localhost',args.port, args.dir)
@@ -131,10 +119,8 @@ usage: httpfs [-v] [-p PORT] [-d PATH-TO-DIR]
             # print(f'[Debug] verbose is : {args.verbose}, port is : {args.port}, path-to-dir is : {args.dir}')
             # print('\n[News] Running the Http file server ...\n')
 
-            # set logging config
-            self._config_logging(args.verbose)
-            logging.debug(f'verbose is : {args.verbose}, port is : {args.port}, path-to-dir is : {args.dir}')
-            logging.info(f'[News] Running the Http file server ...')
+            print(f'verbose is : {args.verbose}, port is : {args.port}, path-to-dir is : {args.dir}')
+            print(f'Running the Http file server ...')
             # run http file server
             # self._run_server('localhost',args.port, args.dir)
             self._run_server_udp(args.dir)
@@ -163,13 +149,13 @@ usage: httpfs [-v] [-p PORT] [-d PATH-TO-DIR]
                 while client_request is None:
                     client_request = server_udp.server_response()
                     if client_request is not None:
-                        logging.debug(f'Received Client request is :\n{client_request}')
+                        print(f'Received Client request is :\n{client_request}')
                         # Parse Request
                         request_parser = HttpRequestParser(client_request.decode("utf-8"))
                         server_response = self._get_response(request_parser, dir_path)
                         # send msg
                         server_udp.send_msg(server_response.encode("utf-8"))
-                    logging.debug('try to receiving request...')
+                    print('try to receiving request...')
                             
     
     def _run_server(self, host, port, dir_path):
@@ -182,11 +168,11 @@ usage: httpfs [-v] [-p PORT] [-d PATH-TO-DIR]
         try:
             ip_addr = socket.gethostbyname(host)
             # print(f'[Debug] hostname is : {ip_addr}')
-            logging.debug(f'hostname is : {ip_addr}')
+            print(f'hostname is : {ip_addr}')
             listener.bind((host, port))
             listener.listen(5)
             # print('Echo server is listening at', port)
-            logging.info(f'Echo server is listening at {port} ')
+            print(f'Echo server is listening at {port} ')
             while True:
                 conn, addr = listener.accept()
                 threading.Thread(target=self._handle_client, args=(conn, addr, dir_path)).start()
@@ -195,7 +181,7 @@ usage: httpfs [-v] [-p PORT] [-d PATH-TO-DIR]
 
     def _handle_client(self, conn, addr, dir_path):
         # print(f'\n[Debug] New client from {addr}')
-        logging.debug(f'New client from {addr}')
+        print(f'New client from {addr}')
         BUFFER_SIZE = 1024
         try:
             data = b''
@@ -206,7 +192,7 @@ usage: httpfs [-v] [-p PORT] [-d PATH-TO-DIR]
                     break
             client_request = data.decode("utf-8")
             # print(f'\n[Debug] --- Receiving Request of Client --- \n\n {client_request} \n\n [Debug] --- End --- \n ')
-            logging.debug(f'Client request is :\n{client_request}')
+            print(f'Client request is :\n{client_request}')
             # test response
             # response = "HTTP1.0/ 200 OK\r\nContext-Type : txt\r\n\r\nServer send response to Client!!!".encode("utf-8")
             # print(f'[Debug] Send Response to Client : \n {response}')
@@ -220,7 +206,7 @@ usage: httpfs [-v] [-p PORT] [-d PATH-TO-DIR]
         finally:
             conn.close()
             # print(f'[Debug] Client: {addr} is disconnected from Server.')
-            logging.debug(f'Client: {addr} is disconnected from Server.')  
+            print(f'Client: {addr} is disconnected from Server.')  
 
     def _get_response(self, request_parser, dir_path):
         '''
@@ -243,7 +229,7 @@ usage: httpfs [-v] [-p PORT] [-d PATH-TO-DIR]
             # return a list of current files in the data directory
             files_list = file_manager.get_files_list_in_dir(dir_path)
             # print(f'[Debug] files list is : {files_list}')
-            logging.debug(f'files list is : {files_list}')
+            print(f'files list is : {files_list}')
             # json_file = json.dumps(files_list, ensure_ascii=False)
             # print(f'JSON files is : \n{json_file}')
             response = self._generate_full_response_by_type(request_parser,files_list,file_manager)
@@ -326,7 +312,7 @@ usage: httpfs [-v] [-p PORT] [-d PATH-TO-DIR]
         response_header += 'Connection: close' + '\r\n\r\n'
         full_response = response_header + content
 
-        logging.debug(f'Server send Response to client:\n{full_response}')
+        print(f'Server send Response to client:\n{full_response}')
 
         return full_response
 

@@ -1,5 +1,3 @@
-
-import logging
 import os
 import re
 import threading
@@ -97,7 +95,6 @@ class FileManager:
         if re.match(r'\.\.\/', file_name):
             self.status = '400'
             self.content = 'Client Cannot Access to read/write any file outside the file server working directory!!!'
-            logging.warning(f'Client Cannot Access : {dir_path}')
         elif dir_path != 'data':  
             self.status = '400'
             self.content = 'Not Access - Contact Server Admin to set correct work directory!'
